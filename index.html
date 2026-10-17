@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-Market Onboarding Kit</title>
+<meta name="description" content="An independent proposal by Shorouk: one onboarding model for every Factorial market, with a sales handoff check, market modules and a time-to-value tracker.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F1F0EC; --card:#FFFFFF; --ink:#1B2226; --muted:#56616A; --line:#CFD2CC;
+  --stamp:#0E6874; --stamp-soft:#DDEEEF;
+  --go:#1E7F55; --go-soft:#DDF0E6; --prep:#9A5D10; --prep-soft:#F6E9D4; --stop:#A93434; --stop-soft:#F6DEDE;
+  --display:"Bricolage Grotesque", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:#131A1D; --card:#1B2428; --ink:#E6EBEA; --muted:#A8B4B7; --line:#34434A;
+    --stamp:#5FC3CF; --stamp-soft:#173A3F;
+    --go:#5CC795; --go-soft:#183528; --prep:#E0A452; --prep-soft:#3A2B15; --stop:#F08080; --stop-soft:#3D1F1F;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 1.0625rem/1.6 var(--body)}
+a{color:var(--stamp);text-underline-offset:3px}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--stamp);outline-offset:3px;border-radius:4px}
+.wrap{max-width:46rem;margin:0 auto;padding:0 1.25rem}
+.wide{max-width:64rem;margin:0 auto;padding:0 1.25rem}
+h1,h2,h3,h4{font-family:var(--display);line-height:1.12;margin:0}
+h1{font-size:clamp(2.3rem,7vw,4.2rem);font-weight:800;letter-spacing:-.025em}
+h2{font-size:clamp(1.6rem,4vw,2.25rem);font-weight:700;letter-spacing:-.015em;margin-bottom:.75rem}
+h3{font-size:1.2rem;font-weight:700}
+p{margin:0 0 1rem}
+.lede{font-size:1.22rem;line-height:1.5;max-width:40rem}
+.muted{color:var(--muted)}
+.small{font-size:.92rem}
+header{padding:3.5rem 0 1rem}
+.disclaimer{display:inline-block;font-size:.88rem;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:.3rem .8rem;margin-bottom:1.75rem}
+header h1{margin-bottom:1.25rem}
+section{padding:3.5rem 0 0}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;margin-top:1.5rem}
+.summary div{border-left:3px solid var(--stamp);padding-left:.9rem}
+.summary b{display:block;font-family:var(--display);font-size:1.1rem;margin-bottom:.2rem}
+@media (max-width:700px){.summary{grid-template-columns:1fr}}
+
+/* route line */
+.route{margin-top:2.5rem;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:1.5rem}
+.route-top{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:1.4rem}
+.route-top h2{font-size:1.4rem;margin:0}
+.seg{display:flex;gap:.3rem;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:.25rem}
+.seg button{appearance:none;border:0;background:transparent;font:700 .9rem var(--body);color:var(--muted);padding:.4rem .85rem;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--stamp);color:#fff}
+@media (prefers-color-scheme:dark){.seg button[aria-pressed="true"]{color:#0E1A1C}}
+.stops{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,1fr);position:relative}
+.stops::before{content:"";position:absolute;left:10%;right:10%;top:1.05rem;height:6px;border-radius:6px;background:var(--stamp);opacity:.35}
+.stops li{position:relative;text-align:center}
+.stop-btn{appearance:none;background:transparent;border:0;cursor:pointer;color:var(--ink);font:inherit;display:flex;flex-direction:column;align-items:center;gap:.45rem;width:100%;padding:0 .25rem}
+.dot{width:2.2rem;height:2.2rem;border-radius:50%;background:var(--card);border:4px solid var(--stamp);display:grid;place-items:center;font:800 .9rem var(--display);color:var(--stamp);position:relative;z-index:1;transition:transform .15s ease}
+.stop-btn[aria-selected="true"] .dot{background:var(--stamp);color:var(--card);transform:scale(1.15)}
+.stop-name{font:700 1rem var(--display)}
+.stop-days{font-size:.82rem;color:var(--muted)}
+.stage-panel{margin-top:1.5rem;border-top:1px solid var(--line);padding-top:1.25rem}
+.stage-panel h3{font-size:1.45rem;margin-bottom:.3rem}
+.stage-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:1.5rem;margin-top:1rem}
+.stage-grid ul{margin:0;padding-left:1.15rem}
+.stage-grid li{margin-bottom:.35rem}
+.side h4{font:700 .95rem var(--body);margin:0 0 .3rem}
+.side p{font-size:.95rem;margin-bottom:.9rem}
+.exit{background:var(--go-soft);border-radius:10px;padding:.7rem .9rem;font-size:.95rem}
+.exit strong{color:var(--go)}
+.total{margin-top:1.1rem;font-size:.95rem;color:var(--muted)}
+@media (max-width:680px){
+  .stops{grid-template-columns:repeat(5,1fr)}.stop-name{font-size:.78rem}.stop-days{display:none}
+  .stage-grid{grid-template-columns:1fr}.route{padding:1.1rem}
+}
+@media (prefers-reduced-motion:reduce){.dot{transition:none}}
+
+/* handoff check */
+.scorecard{background:var(--card);border-radius:18px;padding:1.5rem;margin-top:1.5rem;display:grid;grid-template-columns:1.55fr 1fr;gap:2rem;border:1px solid var(--line)}
+.criteria{list-style:none;margin:0;padding:0}
+.criteria li{border-bottom:1px solid var(--line)}
+.criteria li:last-child{border-bottom:0}
+.criteria label{display:grid;grid-template-columns:1.4rem 1fr auto;gap:.75rem;align-items:start;padding:.75rem 0;cursor:pointer}
+.criteria input{width:1.2rem;height:1.2rem;margin-top:.2rem;accent-color:var(--stamp)}
+.criteria .why{display:block;color:var(--muted);font-size:.9rem;margin-top:.15rem}
+.tag{font:700 .78rem var(--body);border-radius:999px;padding:.12rem .55rem;white-space:nowrap}
+.tag.must{background:var(--stop-soft);color:var(--stop)}
+.tag.should{background:var(--prep-soft);color:var(--prep)}
+.result{position:sticky;top:1rem;align-self:start}
+.score{font:800 4rem/1 var(--display);letter-spacing:-.03em}
+.score span{font-size:1.35rem;color:var(--muted);font-weight:500}
+.meter{height:10px;border-radius:99px;background:var(--line);overflow:hidden;margin:.9rem 0 1rem}
+.meter i{display:block;height:100%;width:0;background:var(--stamp);transition:width .25s ease}
+.verdict{border-radius:12px;padding:.85rem 1rem;font-size:.98rem}
+.verdict b{display:block;font-family:var(--display);font-size:1.15rem;margin-bottom:.2rem}
+.v-go{background:var(--go-soft)}.v-go b{color:var(--go)}
+.v-prep{background:var(--prep-soft)}.v-prep b{color:var(--prep)}
+.v-stop{background:var(--stop-soft)}.v-stop b{color:var(--stop)}
+.missing{font-size:.9rem;margin-top:.8rem;color:var(--muted)}
+.missing ul{margin:.3rem 0 0;padding-left:1.1rem}
+@media (max-width:760px){.scorecard{grid-template-columns:1fr}.result{position:static}}
+
+/* market modules */
+.mtabs{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:1.25rem}
+.mtab{appearance:none;font:700 .92rem var(--body);border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:.4rem .9rem;cursor:pointer}
+.mtab[aria-selected="true"]{border-color:var(--stamp);background:var(--stamp-soft);color:var(--stamp)}
+.mpanel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:1.4rem 1.5rem;margin-top:1rem}
+.mhead{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:baseline;margin-bottom:1rem}
+.mhead h3{font-size:1.5rem}
+.mgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.25rem 2rem}
+.mgrid h4{font:700 .95rem var(--body);color:var(--stamp);margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.04em}
+.mgrid ul{margin:0;padding-left:1.1rem}
+.mgrid li{margin-bottom:.3rem;font-size:.97rem}
+@media (max-width:680px){.mgrid{grid-template-columns:1fr}}
+
+/* tables */
+.table-wrap{overflow-x:auto;margin-top:1.25rem;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:34rem;font-size:.97rem}
+th,td{text-align:left;vertical-align:top;padding:.75rem 1rem;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+th{font:700 .95rem var(--display);background:var(--stamp-soft)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+
+/* tracker */
+.tk-bar{display:flex;flex-wrap:wrap;gap:.6rem;margin:1.25rem 0 .5rem}
+.btn{appearance:none;font:700 .95rem var(--body);border:1.5px solid var(--stamp);background:var(--card);color:var(--stamp);border-radius:999px;padding:.5rem 1rem;cursor:pointer}
+.btn:hover{background:var(--stamp-soft)}
+.btn.primary{background:var(--stamp);color:#fff}
+@media (prefers-color-scheme:dark){.btn.primary{color:#0E1A1C}}
+.btn.quiet{border-color:var(--line);color:var(--muted)}
+.tk-form{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:1.1rem 1.25rem;margin-top:1rem}
+.fields{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem}
+.fields label{display:block;font-size:.85rem;color:var(--muted)}
+.fields input,.fields select{width:100%;margin-top:.2rem;font:400 1rem var(--body);color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:.45rem .55rem}
+@media (max-width:700px){.fields{grid-template-columns:1fr 1fr}}
+.tk-note{font-size:.88rem;color:var(--muted);margin:.6rem 0 0}
+.tk-empty{border:2px dashed var(--line);border-radius:16px;padding:1.5rem;text-align:center;color:var(--muted);margin-top:1.25rem}
+.pill{display:inline-block;border-radius:999px;padding:.1rem .6rem;font-size:.85rem;font-weight:700}
+.pill.go{background:var(--go-soft);color:var(--go)}.pill.prep{background:var(--prep-soft);color:var(--prep)}.pill.stop{background:var(--stop-soft);color:var(--stop)}.pill.idle{background:var(--stamp-soft);color:var(--stamp)}
+.xbtn{appearance:none;border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:1.1rem}
+.bars{margin-top:1.25rem;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:1.1rem 1.25rem}
+.bar-row{display:grid;grid-template-columns:7rem 1fr 4.5rem;gap:.75rem;align-items:center;margin:.45rem 0;font-size:.93rem}
+.bar-track{height:14px;background:var(--paper);border-radius:99px;position:relative;overflow:hidden}
+.bar-track i{position:absolute;inset:0 auto 0 0;background:var(--stamp);border-radius:99px}
+.bar-track i.over{background:var(--stop)}
+.bar-row .v{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+
+.rhythm{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem 1.75rem;margin-top:1.25rem}
+.rhythm div{border-top:2px solid var(--ink);padding-top:.6rem}
+.rhythm b{font-family:var(--display)}
+@media (max-width:640px){.rhythm{grid-template-columns:1fr}}
+.about{margin:4rem 0 0;padding:2rem 0;border-top:2px solid var(--ink)}
+footer{padding:2rem 0 3rem;font-size:.88rem;color:var(--muted)}
+footer ul{padding-left:1.1rem}
+.sr{position:absolute;left:-9999px}
+</style>
+</head>
+<body>
+<header class="wrap">
+  <p class="disclaimer">An independent proposal by Shorouk. Not affiliated with or endorsed by Factorial.</p>
+  <h1>One onboarding model, every market</h1>
+  <p class="lede">Factorial is adding customers, countries and products faster than most post-sale teams can absorb. This kit is how I would run onboarding as one shared model, with a short module for what changes in each market.</p>
+  <div class="summary">
+    <div><b>One core path</b><span class="muted small">Five stages, sized by customer segment, the same in every country.</span></div>
+    <div><b>A real handoff</b><span class="muted small">Nothing goes to onboarding until the scope is clear and sold honestly.</span></div>
+    <div><b>Local where it matters</b><span class="muted small">Market modules for payroll, compliance, language and common blockers.</span></div>
+  </div>
+</header>
+
+<div class="wide">
+  <div class="route" id="model">
+    <div class="route-top">
+      <h2>The core path</h2>
+      <div class="seg" role="group" aria-label="Customer segment">
+        <button type="button" data-seg="s" aria-pressed="true">Small (&lt;50)</button>
+        <button type="button" data-seg="m" aria-pressed="false">Mid (50–250)</button>
+        <button type="button" data-seg="l" aria-pressed="false">Large (250+)</button>
+      </div>
+    </div>
+    <ol class="stops" role="tablist" aria-label="Onboarding stages" id="stops"></ol>
+    <div class="stage-panel" id="stagePanel" role="tabpanel" aria-live="polite"></div>
+    <p class="total" id="totalDays"></p>
+  </div>
+</div>
+
+<main class="wrap">
+  <section id="handoff">
+    <h2>Sales-to-onboarding handoff check</h2>
+    <p>Reviews of Factorial repeatedly mention features that were promised in sales but missing at implementation. The fix is a short check before the deal is signed, filled in together by the account executive and an onboarding lead. Tick what is true for the deal.</p>
+  </section>
+</main>
+
+<div class="wide">
+  <div class="scorecard">
+    <ul class="criteria" id="criteria"></ul>
+    <div class="result" aria-live="polite">
+      <div class="score" id="hScore">0<span>/100</span></div>
+      <div class="meter"><i id="hMeter"></i></div>
+      <div class="verdict" id="hVerdict"></div>
+      <div class="missing" id="hMissing"></div>
+      <div class="tk-bar"><button class="btn" type="button" id="copyHandoff">Copy handoff summary</button></div>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+  <section id="markets">
+    <h2>Market modules</h2>
+    <p>Each market runs the same five stages. These pages list what I would check locally before kickoff. They are a checklist of questions, not claims about what Factorial supports today.</p>
+  </section>
+</main>
+<div class="wide">
+  <div class="mtabs" role="tablist" aria-label="Markets" id="mtabs"></div>
+  <div class="mpanel" role="tabpanel" id="mpanel" aria-live="polite"></div>
+</div>
+
+<main class="wrap">
+  <section id="tracker">
+    <h2>Time-to-value tracker</h2>
+    <p>Add each onboarding to see days to go-live against the target for its segment, and compare markets. Data stays in your browser. Export and import as CSV.</p>
+  </section>
+</main>
+<div class="wide">
+  <div class="tk-bar">
+    <button class="btn primary" type="button" id="tkAddToggle">Add an onboarding</button>
+    <button class="btn" type="button" id="tkSample">Load sample data</button>
+    <button class="btn" type="button" id="tkExport">Export CSV</button>
+    <label class="btn" for="tkImport">Import CSV</label><input class="sr" type="file" id="tkImport" accept=".csv,text/csv">
+    <button class="btn quiet" type="button" id="tkClear">Clear all</button>
+  </div>
+  <form class="tk-form" id="tkForm" hidden>
+    <div class="fields">
+      <label>Customer<input name="name" required placeholder="e.g. Bakery group"></label>
+      <label>Market<select name="market" id="fMarket"></select></label>
+      <label>Segment<select name="seg"><option value="s">Small (&lt;50)</option><option value="m">Mid (50–250)</option><option value="l">Large (250+)</option></select></label>
+      <label>Contract signed<input type="date" name="signed" required></label>
+      <label>Went live (blank if not yet)<input type="date" name="live"></label>
+      <label>Weekly active users %<input type="number" name="wau" min="0" max="100" placeholder="0–100"></label>
+    </div>
+    <div class="tk-bar"><button class="btn primary" type="submit">Save</button><button class="btn quiet" type="button" id="tkCancel">Cancel</button></div>
+  </form>
+  <div id="tkOut"></div>
+</div>
+
+<main class="wrap">
+  <section id="rhythm">
+    <h2>How the team runs it</h2>
+    <div class="rhythm">
+      <div><b>Monday: portfolio review.</b> Every onboarding past its stage target gets an owner and a next step. Ten minutes per market.</div>
+      <div><b>Wednesday: blocker desk.</b> Onboarding, product and payroll specialists clear cross-market blockers in one place, so Germany and Brazil don't solve the same problem twice.</div>
+      <div><b>Monthly: market module update.</b> Each market lead adds what slowed customers down, so the module gets sharper with every go-live.</div>
+      <div><b>Quarterly: segment reset.</b> Stage targets move up or down based on real median days, not hopes.</div>
+    </div>
+  </section>
+
+  <section id="measures">
+    <h2>Measures</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Measure</th><th>Why it matters</th><th>Proposed target</th></tr></thead>
+        <tbody>
+          <tr><td>Days from signature to go-live</td><td>The main time-to-value measure</td><td>Within segment target for 80% of customers</td></tr>
+          <tr><td>Weekly active users at day 60</td><td>Go-live without use is not value</td><td>60%+ of employees</td></tr>
+          <tr><td>Scope changes after kickoff</td><td>Shows whether the handoff check works</td><td>Fewer than 1 in 5 onboardings</td></tr>
+          <tr><td>Onboarding CSAT</td><td>The customer's view of the process</td><td>4.5 out of 5 or higher</td></tr>
+          <tr><td>Day-90 support tickets per 100 employees</td><td>Rough set-up leaks into support later</td><td>Falling quarter on quarter</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small muted" style="margin-top:.75rem">All targets are my own proposal, to be calibrated against Factorial's real data.</p>
+  </section>
+
+  <div class="about">
+    <h2>About this kit</h2>
+    <p>I'm Shorouk, a customer success and operations professional with 7+ years in onboarding and implementation across SaaS in MENA, including an AI HR platform. I built this from public information to show how I would approach scaling onboarding across Factorial's markets.</p>
+    <p class="muted small">All stages, durations, criteria and targets are my own proposal. Market notes are questions to check, not statements about Factorial's product.</p>
+  </div>
+</main>
+<footer class="wrap">
+  <p>Based on public sources, October 2026:</p>
+  <ul>
+    <li>Factorial's Series D and expansion plans (press coverage, June 2026)</li>
+    <li>Public Factorial job posts for onboarding and implementation roles</li>
+    <li>Public reviews on G2, Capterra, GetApp and Trustpilot</li>
+  </ul>
+  <p>Not affiliated with or endorsed by Factorial. Factorial is a trademark of its owner.</p>
+</footer>
+
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+
+/* ---------- core path ---------- */
+const STAGES=[
+ {k:"Scope",title:"Scope and handoff",goal:"Agree exactly what was bought and what go-live means.",
+  days:{s:2,m:5,l:10},
+  owner:{s:"Account executive + onboarding specialist",m:"Account executive + onboarding lead",l:"Account executive + project manager"},
+  tasks:["Run the handoff check below; any must-have gap is fixed before signature","Name the customer's project owner and decision maker","List modules in scope and the go-live date both sides commit to","Pick the market module and flag local payroll or compliance needs"],
+  exit:"Signed scope with a named owner on both sides and a dated go-live."},
+ {k:"Kickoff",title:"Kickoff and data",goal:"Turn the scope into a plan and get clean employee data in.",
+  days:{s:3,m:7,l:14},
+  owner:{s:"Onboarding specialist",m:"Onboarding lead",l:"Project manager"},
+  tasks:["Kickoff call: plan, roles, weekly check-in slot","Send the data template; validate employees, contracts, managers, locations","Agree policies to configure: absence, working hours, approvals","Small customers: kickoff and data in one session"],
+  exit:"Clean employee import and an agreed policy list."},
+ {k:"Configure",title:"Configure and connect",goal:"Build the customer's real processes in the product.",
+  days:{s:5,m:14,l:30},
+  owner:{s:"Onboarding specialist",m:"Onboarding lead + payroll specialist",l:"Project manager + solutions team"},
+  tasks:["Set up policies, workflows and permissions","Connect payroll and other systems from the market module","Test with 3–5 real employees across roles","Train HR admins; record a short video for managers"],
+  exit:"Admins can run their top three processes without help."},
+ {k:"Go-live",title:"Go-live",goal:"Switch everyone on with a clear first week.",
+  days:{s:2,m:5,l:10},
+  owner:{s:"Onboarding specialist",m:"Onboarding lead",l:"Project manager"},
+  tasks:["Invite all employees with a message from their own HR team","Daily check for the first week: logins, failed requests, questions","Fix configuration issues within 24 hours","Run the first payroll cycle together if payroll is in scope"],
+  exit:"All employees invited, first payroll or absence cycle completed."},
+ {k:"Adopt",title:"Adopt and hand over",goal:"Prove value, then pass to customer success with context.",
+  days:{s:14,m:30,l:45},
+  owner:{s:"Onboarding specialist → CSM",m:"Onboarding lead → CSM",l:"Project manager → CSM"},
+  tasks:["Track weekly active users and the top unused feature","Switch on the first AI assistant tasks (see the AI adoption kit)","Collect onboarding CSAT","Handover note: goals, risks, open requests, who to call"],
+  exit:"60%+ weekly active users and a written handover accepted by the CSM."}
+];
+let seg="s", stage=0;
+const stopsEl=$("#stops");
+STAGES.forEach((st,i)=>{
+  const li=document.createElement("li");
+  li.innerHTML=`<button class="stop-btn" role="tab" id="st${i}" aria-controls="stagePanel" aria-selected="${i===0}" tabindex="${i===0?0:-1}"><span class="dot">${i+1}</span><span class="stop-name">${st.k}</span><span class="stop-days" data-d="${i}"></span></button>`;
+  stopsEl.appendChild(li);
+});
+const stopBtns=[...stopsEl.querySelectorAll(".stop-btn")];
+stopBtns.forEach((b,i)=>{
+  b.addEventListener("click",()=>{stage=i;renderStage()});
+  b.addEventListener("keydown",e=>{
+    let n=null; if(e.key==="ArrowRight")n=(i+1)%5; if(e.key==="ArrowLeft")n=(i+4)%5;
+    if(n!==null){e.preventDefault();stage=n;renderStage();stopBtns[n].focus()}
+  });
+});
+document.querySelectorAll(".seg button").forEach(b=>b.addEventListener("click",()=>{
+  seg=b.dataset.seg;
+  document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",x===b));
+  renderStage();
+}));
+function target(s){return STAGES.reduce((a,st)=>a+st.days[s],0)-STAGES[4].days[s]}
+function renderStage(){
+  stopBtns.forEach((b,i)=>{b.setAttribute("aria-selected",i===stage);b.tabIndex=i===stage?0:-1});
+  document.querySelectorAll(".stop-days").forEach(el=>{el.textContent=STAGES[+el.dataset.d].days[seg]+" days"});
+  const st=STAGES[stage];
+  $("#stagePanel").innerHTML=`<h3>Stage ${stage+1}: ${esc(st.title)}</h3><p class="muted">${esc(st.goal)}</p>
+  <div class="stage-grid"><ul>${st.tasks.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>
+  <div class="side"><h4>Owner</h4><p>${esc(st.owner[seg])}</p><h4>Target</h4><p>${st.days[seg]} working days</p>
+  <div class="exit"><strong>Exit when:</strong> ${esc(st.exit)}</div></div></div>`;
+  $("#totalDays").textContent=`Target from signature to go-live for this segment: ${target(seg)} working days, then ${STAGES[4].days[seg]} days of adoption before handover.`;
+}
+renderStage();
+
+/* ---------- handoff check ---------- */
+const CRIT=[
+ {t:"Every module sold is listed with the customer's must-have workflows",w:"Stops 'we thought it did X' at configuration.",p:15,must:true},
+ {t:"Payroll setup is clear: in-house, external provider or local partner, and named",w:"The most common reason go-live slips in any market.",p:15,must:true},
+ {t:"No promise depends on a feature that isn't live in this market",w:"Roadmap items are written down as roadmap, with no date promised.",p:15,must:true},
+ {t:"A customer project owner with time is named",w:"Onboarding without an owner stalls in week two.",p:15,must:true},
+ {t:"Go-live date agreed and realistic for the segment target",w:"Uses the targets in the core path above.",p:10,must:false},
+ {t:"Integrations needed are listed (accounting, ERP, SSO, other tools)",w:"Lets the solutions team check them before kickoff.",p:10,must:false},
+ {t:"Local requirements from the market module checked",w:"For example works council approval in Germany.",p:10,must:false},
+ {t:"Employee data source and quality known",w:"A spreadsheet export is fine; knowing it exists is what matters.",p:5,must:false},
+ {t:"The customer knows what onboarding includes and what costs extra",w:"Reviews show price surprises hurt trust early.",p:5,must:false}
+];
+const critEl=$("#criteria");
+CRIT.forEach((c,i)=>{
+  const li=document.createElement("li");
+  li.innerHTML=`<label><input type="checkbox" data-i="${i}"><span>${esc(c.t)}<span class="why">${esc(c.w)}</span></span><span class="tag ${c.must?"must":"should"}">${c.must?"Must":"Should"}</span></label>`;
+  critEl.appendChild(li);
+});
+function handoffState(){
+  const on=[...critEl.querySelectorAll("input")].map(x=>x.checked);
+  const score=CRIT.reduce((a,c,i)=>a+(on[i]?c.p:0),0);
+  const mustMissing=CRIT.filter((c,i)=>c.must&&!on[i]);
+  const shouldMissing=CRIT.filter((c,i)=>!c.must&&!on[i]);
+  let v;
+  if(mustMissing.length) v={c:"v-stop",b:"Don't sign as scoped",t:"A must-have is missing. Fix it with the customer before signature."};
+  else if(score<85) v={c:"v-prep",b:"Sign, but clarify at kickoff",t:"Core scope is solid. Close the open items in the first week."};
+  else v={c:"v-go",b:"Ready for onboarding",t:"Hand over with this summary attached to the deal."};
+  return {score,mustMissing,shouldMissing,v};
+}
+function renderHandoff(){
+  const s=handoffState();
+  $("#hScore").innerHTML=`${s.score}<span>/100</span>`;
+  $("#hMeter").style.width=s.score+"%";
+  const vd=$("#hVerdict"); vd.className="verdict "+s.v.c; vd.innerHTML=`<b>${s.v.b}</b>${s.v.t}`;
+  const miss=[...s.mustMissing,...s.shouldMissing];
+  $("#hMissing").innerHTML=miss.length?`Still open:<ul>${miss.slice(0,4).map(c=>`<li>${esc(c.t)}</li>`).join("")}${miss.length>4?`<li>and ${miss.length-4} more</li>`:""}</ul>`:"";
+}
+critEl.addEventListener("change",renderHandoff); renderHandoff();
+$("#copyHandoff").addEventListener("click",async e=>{
+  const s=handoffState(); const on=[...critEl.querySelectorAll("input")].map(x=>x.checked);
+  const txt=`Handoff check: ${s.score}/100 — ${s.v.b}\n\n`+CRIT.map((c,i)=>`${on[i]?"[x]":"[ ]"} ${c.t}${c.must?" (must)":""}`).join("\n");
+  try{await navigator.clipboard.writeText(txt);e.target.textContent="Copied";}catch(_){e.target.textContent="Copy failed";}
+  setTimeout(()=>e.target.textContent="Copy handoff summary",1600);
+});
+
+/* ---------- market modules ---------- */
+const MARKETS=[
+ {id:"ES",n:"Spain",lang:"Spanish, Catalan in some customers",
+  pay:["Which payroll provider or gestoría runs payroll today, and what export format they accept","Whether payroll is in-house or outsourced; most SMBs outsource"],
+  comp:["Mandatory working-time recording (registro de jornada) since 2019; confirm clock-in rules per site","Collective agreement (convenio colectivo) that sets holidays and hours"],
+  block:["Gestoría not involved until late, so payroll data arrives in week 3","Multiple sites with different convenios"],
+  ask:["Who at the gestoría should join kickoff?","Which convenio applies to each group of employees?"]},
+ {id:"DE",n:"Germany",lang:"German expected throughout, including contracts and training",
+  pay:["DATEV connection or the tax adviser (Steuerberater) who runs payroll","Export format and cut-off date the adviser needs each month"],
+  comp:["Works council (Betriebsrat) co-determination on tools that track time or behaviour; add approval time to the plan","Working-time recording obligation following the 2022 Federal Labour Court ruling","GDPR and data-processing agreement reviewed early"],
+  block:["Works council approval not scheduled, delaying go-live by weeks","Tax adviser reluctant to change process"],
+  ask:["Is there a works council, and when does it next meet?","Who signs the data-processing agreement?"]},
+ {id:"FR",n:"France",lang:"French throughout",
+  pay:["Which payroll software or accountant produces the DSN (monthly social declaration)","Variable pay elements needed each month"],
+  comp:["Applicable collective agreement (convention collective)","Employee representative body (CSE) consultation for new HR tools in larger companies"],
+  block:["Payroll variables collected by email instead of in the tool","CSE consultation not planned"],
+  ask:["Who prepares the DSN today?","Does a CSE need to be informed or consulted?"]},
+ {id:"IT",n:"Italy",lang:"Italian throughout",
+  pay:["The labour consultant (consulente del lavoro) who runs payroll and the export they need","Monthly attendance data for the LUL (single employment register)"],
+  comp:["National collective agreement (CCNL) per employee group","Attendance and absence codes matching the consultant's system"],
+  block:["Absence codes don't match the consultant's codes","Consultant not engaged until go-live"],
+  ask:["Which CCNL applies?","Can the consultant join a 30-minute call in week one?"]},
+ {id:"PT",n:"Portugal",lang:"Portuguese",
+  pay:["The certified accountant (contabilista certificado) or payroll provider and their import format"],
+  comp:["Working-time and holiday rules from the Labour Code and any collective agreement","Social security reporting handled by the payroll provider"],
+  block:["Payroll exports done manually each month"],
+  ask:["Who sends payroll data today, and how?"]},
+ {id:"UK",n:"United Kingdom",lang:"English",
+  pay:["Payroll software or bureau that submits Real Time Information to HMRC","Pension auto-enrolment provider"],
+  comp:["Right-to-work checks stored on employee records","Holiday entitlement rules for part-time and irregular-hours staff"],
+  block:["Holiday calculations for irregular hours not agreed"],
+  ask:["Which payroll provider and pension scheme are used?"]},
+ {id:"BR",n:"Brazil",lang:"Brazilian Portuguese",
+  pay:["Accountant (contador) or payroll system feeding eSocial","Benefits providers (meal and transport vouchers)"],
+  comp:["CLT rules on working time, overtime and time banks","Electronic time-clock rules (ponto eletrônico) and record retention"],
+  block:["Time-clock setup not matching legal requirements","Union agreements with special overtime rules"],
+  ask:["Who feeds eSocial today?","Is there a time bank (banco de horas) agreement?"]},
+ {id:"MX",n:"Mexico",lang:"Mexican Spanish",
+  pay:["Payroll provider issuing stamped payroll receipts (CFDI de nómina)","IMSS social security registration process"],
+  comp:["NOM-035 psychosocial risk requirements","Vacation rules after the 2023 reform"],
+  block:["Vacation balances not recalculated after the reform"],
+  ask:["Who issues payroll receipts?","Has NOM-035 been addressed?"]},
+ {id:"AE",n:"UAE",lang:"English for most SMBs; Arabic for some documents and staff",
+  pay:["Salary payments through the Wage Protection System (WPS) and the bank or exchange house used","Payroll provider or in-house team"],
+  comp:["End-of-service gratuity calculation","Emiratisation targets where they apply","Visa, Emirates ID and labour-card expiry dates tracked on employee records","Saturday–Sunday weekend since 2022; check shift patterns"],
+  block:["Documents with expiry dates not in the employee data","Multiple free zones with different rules"],
+  ask:["Which WPS agent pays salaries?","Is the company mainland or free zone, or both?"]}
+];
+const mtabs=$("#mtabs");
+MARKETS.forEach((m,i)=>{
+  const b=document.createElement("button");
+  b.className="mtab"; b.type="button"; b.setAttribute("role","tab"); b.id="mt"+m.id;
+  b.setAttribute("aria-controls","mpanel"); b.setAttribute("aria-selected",i===0); b.tabIndex=i===0?0:-1;
+  b.textContent=m.n; b.addEventListener("click",()=>renderMarket(i));
+  b.addEventListener("keydown",e=>{let n=null;if(e.key==="ArrowRight")n=(i+1)%MARKETS.length;if(e.key==="ArrowLeft")n=(i-1+MARKETS.length)%MARKETS.length;if(n!==null){e.preventDefault();renderMarket(n);mtabs.children[n].focus()}});
+  mtabs.appendChild(b);
+});
+function list(a){return `<ul>${a.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`}
+function renderMarket(i){
+  [...mtabs.children].forEach((b,j)=>{b.setAttribute("aria-selected",i===j);b.tabIndex=i===j?0:-1});
+  const m=MARKETS[i];
+  $("#mpanel").innerHTML=`<div class="mhead"><h3>${esc(m.n)}</h3><span class="muted small">Language: ${esc(m.lang)}</span></div>
+  <div class="mgrid"><div><h4>Payroll to check</h4>${list(m.pay)}</div><div><h4>Compliance topics</h4>${list(m.comp)}</div>
+  <div><h4>Common blockers</h4>${list(m.block)}</div><div><h4>Ask at kickoff</h4>${list(m.ask)}</div></div>`;
+}
+renderMarket(0);
+
+/* ---------- tracker ---------- */
+const KEY="ffmok.v1";
+const fMarket=$("#fMarket");
+MARKETS.forEach(m=>{const o=document.createElement("option");o.value=m.id;o.textContent=m.n;fMarket.appendChild(o)});
+const mName=id=>(MARKETS.find(m=>m.id===id)||{n:id}).n;
+let rows=[];
+try{rows=JSON.parse(localStorage.getItem(KEY)||"[]")||[]}catch(_){rows=[]}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(rows))}catch(_){}};
+function workdays(a,b){
+  const s=new Date(a+"T00:00:00"),e=new Date(b+"T00:00:00"); if(isNaN(s)||isNaN(e)||e<s)return null;
+  let n=0; for(let d=new Date(s);d<e;d.setDate(d.getDate()+1)){const w=d.getDay();if(w!==0&&w!==6)n++} return n;
+}
+const today=()=>new Date().toISOString().slice(0,10);
+function status(r){
+  const t=target(r.seg);
+  if(!r.live){const d=workdays(r.signed,today());if(d===null)return{p:"idle",l:"Not started",d:null};
+    return d>t?{p:"stop",l:`Late: day ${d} of ${t}`,d}:{p:"idle",l:`In progress: day ${d} of ${t}`,d};}
+  const d=workdays(r.signed,r.live); if(d===null)return{p:"idle",l:"Check dates",d:null};
+  const wau=r.wau===""||r.wau==null?null:+r.wau;
+  if(d>t)return{p:"prep",l:`Live late (${d} days)`,d};
+  if(wau!==null&&wau<60)return{p:"prep",l:`Live on time, low use (${wau}%)`,d};
+  return{p:"go",l:`Live on time (${d} days)`,d};
+}
+function renderTracker(){
+  const out=$("#tkOut");
+  if(!rows.length){out.innerHTML=`<div class="tk-empty">No onboardings yet. Add one, or load sample data to see how it works.</div>`;return}
+  const segN={s:"Small",m:"Mid",l:"Large"};
+  let html=`<div class="table-wrap"><table><thead><tr><th>Customer</th><th>Market</th><th>Segment</th><th class="num">Target days</th><th>Status</th><th class="num">WAU</th><th><span class="sr">Remove</span></th></tr></thead><tbody>`;
+  rows.forEach((r,i)=>{const s=status(r);html+=`<tr><td>${esc(r.name)}</td><td>${esc(mName(r.market))}</td><td>${segN[r.seg]||""}</td><td class="num">${target(r.seg)}</td><td><span class="pill ${s.p}">${esc(s.l)}</span></td><td class="num">${r.wau===""||r.wau==null?"–":esc(r.wau)+"%"}</td><td><button class="xbtn" type="button" data-del="${i}" aria-label="Remove ${esc(r.name)}">×</button></td></tr>`});
+  html+=`</tbody></table></div>`;
+  const by={};
+  rows.forEach(r=>{const s=status(r);if(!r.live||s.d===null)return;(by[r.market]=by[r.market]||[]).push(s.d/target(r.seg))});
+  const ms=Object.keys(by);
+  if(ms.length){
+    const data=ms.map(m=>{const a=by[m].sort((x,y)=>x-y);const med=a.length%2?a[(a.length-1)/2]:(a[a.length/2-1]+a[a.length/2])/2;return{m,med,n:a.length}}).sort((a,b)=>b.med-a.med);
+    const max=Math.max(1.5,...data.map(d=>d.med));
+    html+=`<div class="bars"><h3>Median time to go-live vs target, by market</h3><p class="small muted">100% means exactly on target. Live onboardings only.</p>`+
+      data.map(d=>`<div class="bar-row"><span>${esc(mName(d.m))}</span><div class="bar-track" aria-hidden="true"><i class="${d.med>1?"over":""}" style="width:${Math.round(d.med/max*100)}%"></i></div><span class="v">${Math.round(d.med*100)}% <span class="small">(${d.n})</span></span></div>`).join("")+`</div>`;
+  }
+  out.innerHTML=html;
+}
+$("#tkOut").addEventListener("click",e=>{const b=e.target.closest("[data-del]");if(!b)return;rows.splice(+b.dataset.del,1);save();renderTracker()});
+$("#tkAddToggle").addEventListener("click",()=>{const f=$("#tkForm");f.hidden=!f.hidden;if(!f.hidden)f.name.focus()});
+$("#tkCancel").addEventListener("click",()=>{$("#tkForm").hidden=true});
+$("#tkForm").addEventListener("submit",e=>{
+  e.preventDefault();const f=e.target;
+  rows.push({name:f.name.value.trim(),market:f.market.value,seg:f.seg.value,signed:f.signed.value,live:f.live.value,wau:f.wau.value});
+  save();f.reset();f.hidden=true;renderTracker();
+});
+$("#tkSample").addEventListener("click",()=>{
+  const d=n=>{const x=new Date();x.setDate(x.getDate()-n);return x.toISOString().slice(0,10)};
+  rows=[
+   {name:"Café chain (sample)",market:"ES",seg:"s",signed:d(60),live:d(48),wau:"72"},
+   {name:"Engineering firm (sample)",market:"DE",seg:"m",signed:d(90),live:d(25),wau:"58"},
+   {name:"Logistics group (sample)",market:"DE",seg:"l",signed:d(120),live:d(40),wau:"64"},
+   {name:"Design studio (sample)",market:"FR",seg:"s",signed:d(40),live:d(30),wau:"81"},
+   {name:"Retailer (sample)",market:"BR",seg:"m",signed:d(70),live:d(35),wau:"66"},
+   {name:"Clinic group (sample)",market:"AE",seg:"m",signed:d(30),live:"",wau:""},
+   {name:"Fashion brand (sample)",market:"IT",seg:"s",signed:d(25),live:"",wau:""}
+  ];save();renderTracker();
+});
+$("#tkClear").addEventListener("click",()=>{if(rows.length&&confirm("Remove all onboardings from this browser?")){rows=[];save();renderTracker()}});
+const COLS=["name","market","seg","signed","live","wau"];
+$("#tkExport").addEventListener("click",()=>{
+  const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;
+  const csv=[COLS.join(","),...rows.map(r=>COLS.map(c=>q(r[c])).join(","))].join("\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="onboardings.csv";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+});
+function parseCSV(t){const out=[];let row=[],f="",q=false;for(let i=0;i<t.length;i++){const c=t[i];
+  if(q){if(c==='"'){if(t[i+1]==='"'){f+='"';i++}else q=false}else f+=c}
+  else if(c==='"')q=true;else if(c===","){row.push(f);f=""}else if(c==="\n"||c==="\r"){if(c==="\r"&&t[i+1]==="\n")i++;row.push(f);out.push(row);row=[];f=""}else f+=c}
+  if(f||row.length){row.push(f);out.push(row)}return out.filter(r=>r.some(x=>x!==""))}
+$("#tkImport").addEventListener("change",e=>{
+  const file=e.target.files[0];if(!file)return;const rd=new FileReader();
+  rd.onload=()=>{const data=parseCSV(String(rd.result));const head=data.shift()||[];
+    const idx=COLS.map(c=>head.indexOf(c));if(idx.some(i=>i<0)){alert("CSV needs columns: "+COLS.join(", "));return}
+    rows=data.map(r=>Object.fromEntries(COLS.map((c,j)=>[c,r[idx[j]]??""])));save();renderTracker();e.target.value=""};
+  rd.readAsText(file);
+});
+renderTracker();
+})();
+</script>
+</body>
+</html>
